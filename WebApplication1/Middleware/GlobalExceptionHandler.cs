@@ -1,7 +1,7 @@
 ﻿using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.Mvc;
 using System.ComponentModel.DataAnnotations;
-using WebApplication1.Exception;
+using WebApplication1.Exceptions;
 
 namespace WebApplication1.Middleware
 {

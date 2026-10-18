@@ -1,8 +1,9 @@
 ﻿using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.Mvc;
 using System.ComponentModel.DataAnnotations;
+using WebApplication1.Exception;
 
-namespace WebApplication1
+namespace WebApplication1.Middleware
 {
     public class GlobalExceptionHandler : IExceptionHandler
     {

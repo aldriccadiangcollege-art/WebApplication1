@@ -1,4 +1,4 @@
-﻿namespace WebApplication1.Exception
+﻿namespace WebApplication1.Exceptions
 {
     public class NotFoundException : Exception
     {

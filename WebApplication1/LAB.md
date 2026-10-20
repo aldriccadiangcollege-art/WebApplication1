@@ -10,10 +10,13 @@ Ran the starter API and tested it in Swagger UI. Two bad behaviors reproduced:
 2. **A missing resource causes a server error.**
    `GET /api/Product/9999` threw an unhandled
    `System.InvalidOperationException` ("Sequence contains no matching element")
-   and returned **500 Internal Server Error** instead of a clean **404 Not Found**
+   and returned **500 Internal Server Error** (body: "An unexpected error occurred")
+   instead of a clean **404 Not Found**.
+
+**Checkpoint:** the two bad behaviors above are what the lab fixes.
 
 
-----
+---
 ## Part 1 — Data Annotations validation
 
 Added `CreateProductRequest` and `UpdateProductRequest` with `[Required]`, `[StringLength]`
@@ -42,8 +45,12 @@ now returns **400 Bad Request**:
   "traceId": "00-926500da804c288a9a69283f69278d16-8b52f9998e11d239-00"
 }
 ```
+**Expected result:** Met. Invalid input is rejected automatically with a 400 and a
+`ValidationProblemDetails` body listing each invalid field.
 
-------
+
+
+---
 
 ## Part 2 — Custom rule and domain exception
 
@@ -76,8 +83,15 @@ doesn't exist. With `UseExceptionHandler()` commented out, `GET /api/Product/999
 **500 Internal Server Error**: the response body exposed the full stack trace, local file
 paths and request headers.
 
+**Expected result:** Met. The custom rule rejects the offending input with 400, and a missing
+id currently throws an unhandled `NotFoundException`, producing a raw 500 (motivating Part 3).
 
-------
+**Checkpoint:** Custom rule: `SalePrice` must be less than `Price` (`IValidatableObject`).
+Message returned: "SalePrice must be less than Price."
+
+
+---
+
 ## Part 3 — Global exception handling
 
 **Handler:** `GlobalExceptionHandler : IExceptionHandler` maps `NotFoundException` to 404,
@@ -117,7 +131,8 @@ the client; the full detail appears only in the server log. For any exception th
 
 **Checkpoint:** the 404 body and the matching server log line are shown above.
 
-----
+---
+
 ## Part 4 — Standardized responses
 
 - `POST` returns **201 Created** with a `Location` header, `DELETE` returns **204 No Content**,
@@ -190,10 +205,12 @@ envelope, and every error is Problem Details with the correct status code.
 
 ## Reflection
 
-Validation, exception handling and standard responses each handle a different stage of a
+Validation, exception handling and standard responses each cover a different stage of a
 request, and together they make the API predictable. Validation rejects bad input at the
 boundary with a 400 before it reaches any logic, while domain exceptions like
 `NotFoundException` and `ConflictException` let the code say what went wrong without knowing
 anything about HTTP. The global handler then turns those exceptions into the right status
 codes in one place, logging the full detail server-side and returning only a safe body.
-Because
+Because validation errors and handled exceptions both use Problem Details, and successes use
+consistent status codes and a paged envelope, a client can handle every response with one set
+of rules.
